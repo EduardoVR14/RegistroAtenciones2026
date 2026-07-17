@@ -151,8 +151,19 @@ clearFileBtn.addEventListener('click', () => {
 function handleHistFile(file){
   fileSummary.textContent = 'Leyendo ' + file.name + '…';
   fileStatus.classList.add('show');
+
+  const stallTimer = setTimeout(() => {
+    fileSummary.textContent = 'Sigue leyendo ' + file.name + '… si el archivo está en iCloud/Drive puede tardar en descargarse, o si es muy pesado el procesamiento puede tomar un minuto. Espera un poco más; si no avanza, vuelve a intentarlo con el archivo ya guardado en el celular.';
+  }, 12000);
+
   const reader = new FileReader();
+  reader.onerror = () => {
+    clearTimeout(stallTimer);
+    fileSummary.textContent = 'No se pudo leer el archivo (' + (reader.error ? reader.error.message : 'error desconocido') + '). Intenta guardarlo primero en el almacenamiento del celular y volver a subirlo.';
+    console.error('FileReader error', reader.error);
+  };
   reader.onload = (e) => {
+    clearTimeout(stallTimer);
     setTimeout(() => {
       try{
         const data = new Uint8Array(e.target.result);
