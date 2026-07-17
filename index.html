@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Registro diario de atenciones — HIS</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2B4C4F">
+
+<!-- iOS: hace que se pueda instalar y se vea como app nativa desde "Compartir → Añadir a pantalla de inicio" -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Atenciones">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Registro diario de atenciones</h1>
+      <div class="tagline">Llena una vez el código, elige al personal, y arma la lista del día para copiarla al HIS</div>
+    </div>
+    <div class="badge">Todo se procesa en tu celular</div>
+  </header>
+
+  <section>
+    <div class="section-title">Historial (opcional, para autocompletar)</div>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Subir historial de HISREPORT">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2B4C4F" stroke-width="1.6"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <div class="dz-text">
+        <b>Sube tu Excel de HISREPORT para autocompletar pacientes, personal y códigos</b>
+        <span>Es opcional — puedes registrar todo a mano si prefieres, pero esto ahorra tipeo</span>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    </div>
+    <div class="file-status" id="fileStatus">
+      <span><span class="ok">✓</span> <span id="fileSummary"></span></span>
+      <button id="clearFileBtn" type="button">Quitar historial</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Datos de la atención</div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label for="eessInput">EESS</label>
+          <input type="text" id="eessInput" placeholder="ej. Tantará">
+        </div>
+        <div class="field">
+          <label for="fechaInput">Fecha</label>
+          <input type="date" id="fechaInput">
+        </div>
+        <div class="field">
+          <label for="tipodocInput">Tipo doc.</label>
+          <select id="tipodocInput">
+            <option value="DNI">DNI</option>
+            <option value="CE">CE</option>
+            <option value="PAS">Pasaporte</option>
+            <option value="OTR">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="numdocInput">N.º documento del paciente</label>
+          <input type="text" id="numdocInput" placeholder="ej. 80942732" autocomplete="off">
+        </div>
+      </div>
+      <div class="field-note" id="patientNote"></div>
+
+      <div class="form-grid" style="margin-top:8px;">
+        <div class="field" style="grid-column:span 2;">
+          <label for="pacienteInput">Paciente</label>
+          <input type="text" id="pacienteInput" placeholder="Nombres y apellidos">
+        </div>
+        <div class="field">
+          <label for="fechanacInput">Fecha nac.</label>
+          <input type="date" id="fechanacInput">
+        </div>
+        <div class="field readonly">
+          <label for="edadInput">Edad (calculada)</label>
+          <input type="text" id="edadInput" readonly>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-grid">
+        <div class="field" style="grid-column:span 2;">
+          <label for="personalInput">Personal que atiende (nombre o RHNUMDOC)</label>
+          <input type="text" id="personalInput" placeholder="ej. Llanos Canchero" list="personalList" autocomplete="off">
+          <datalist id="personalList"></datalist>
+        </div>
+        <div class="field readonly">
+          <label for="profesionInput">Profesión</label>
+          <input type="text" id="profesionInput" readonly>
+        </div>
+        <div class="field readonly">
+          <label for="rhnumdocInput">RHNUMDOC</label>
+          <input type="text" id="rhnumdocInput" readonly>
+        </div>
+        <div class="field">
+          <label for="servicioInput">Servicio</label>
+          <div class="svc-select-wrap">
+            <select id="servicioInput">
+              <option value="PSICOLOGIA">Psicología</option>
+              <option value="OBSTETRICIA">Obstetricia</option>
+              <option value="ENFERMERIA">Enfermería</option>
+              <option value="MEDICINA GENERAL">Medicina</option>
+              <option value="ODONTOLOGIA GENERAL">Odontología</option>
+              <option value="NUTRICION">Nutrición</option>
+              <option value="FARMACIA">Farmacia</option>
+              <option value="TECNICOS">Técnicos</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field-note" id="personalNote"></div>
+
+      <hr class="divider">
+
+      <div class="section-title" style="margin-bottom:8px;">Códigos de la atención</div>
+      <div id="codeRows"></div>
+      <button id="addCodeBtn" type="button">+ Agregar código</button>
+
+      <div class="form-actions">
+        <button id="saveBtn" type="button">Guardar atención</button>
+        <span id="formMsg"></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Atenciones del día</div>
+    <div id="summaryBar" class="summary-bar" style="display:none"></div>
+    <div class="actions-bar">
+      <button id="copyBtn" type="button">📋 Copiar tabla</button>
+      <button id="downloadXlsxBtn" type="button">📤 Compartir / descargar Excel</button>
+      <button id="saveProgressBtn" type="button">💾 Compartir / guardar avance</button>
+      <button id="loadProgressBtn" type="button">📂 Cargar avance</button>
+      <input type="file" id="progressFileInput" accept=".json" style="display:none">
+      <button id="clearDayBtn" type="button" class="danger">🗑 Vaciar lista del día</button>
+    </div>
+    <div id="dayListWrap"></div>
+  </section>
+
+  <footer>Herramienta local — nada se envía a ningún servidor. Tu lista del día se guarda automáticamente en este dispositivo; usa "Compartir / descargar Excel" cuando quieras entregarla.</footer>
+</div>
+
+<script src="lib/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('No se pudo registrar el service worker', err));
+  });
+}
+</script>
+</body>
+</html>
